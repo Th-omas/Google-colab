@@ -445,7 +445,7 @@ class MyConvolutionalNetwork(nn.Module):
     def __init__(self):
         super(MyConvolutionalNetwork, self).__init__()
         #Initial
-        self.conv1 = nn.Conv2d(3, 16, kernel_size=2, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
         #To loop on output of conv3
         self.conv12 = nn.Conv2d(64, 16, kernel_size=2, stride=1, padding=1)
         
@@ -458,15 +458,15 @@ class MyConvolutionalNetwork(nn.Module):
         #### START CODE: ADD NEW LAYERS ####
         # (do not forget to update `flattened_size`:
         # the input size of the first fully connected layer self.fc1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=2, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(16, 128, kernel_size=3, stride=1, padding=1)
         
-        self.conv3 = nn.Conv2d(32, 64, kernel_size=2, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(128, 256, kernel_size=3, stride=1, padding=1)
                 
         # Size of the output of the last convolution:
-        self.flattened_size = 16384
+        self.flattened_size = 215296
         
-        self.fc1 = nn.Linear(self.flattened_size, 64)
-        self.fc2 = nn.Linear(64, 10)
+        self.fc1 = nn.Linear(self.flattened_size, 32)
+        self.fc2 = nn.Linear(32, 10)
         self.soft = nn.Softmax(1)
 
     def forward(self, x):
@@ -476,7 +476,6 @@ class MyConvolutionalNetwork(nn.Module):
         (color channel first)
         in the comments, we omit the batch_size in the shape
         """
-        # shape : 3x32x32 -> 18x32x32
         
         x = F.relu(self.conv1(x))
         x=self.pool(x)
@@ -486,6 +485,10 @@ class MyConvolutionalNetwork(nn.Module):
         
         x= F.relu(self.conv3(x))
         x= self.pool(x)
+        
+        #Failed tentative to create a 6n CNN (3 by 3 with average pooling between each 3 CNN 16x32x64) as described on the paper
+        #and softmax output
+        # n = 18
         #x = F.relu(self.conv3(x))
         #x=self.pool(x)
         
@@ -512,7 +515,7 @@ class MyConvolutionalNetwork(nn.Module):
         return x
 
 net = MyConvolutionalNetwork()
-train_history, val_history = train(net, batch_size=32, n_epochs=10, learning_rate=0.001)
+train_history, val_history = train(net, batch_size=32, n_epochs=6, learning_rate=0.001)
 
 """### Losses Plot"""
 
@@ -529,4 +532,5 @@ confusion_matrix = accuracy_per_class(net)
 plot_confusion_matrix(confusion_matrix, classes,
                       title='Confusion matrix, without normalization')
 
+#Throw the net to make sure memory is released
 net = None
